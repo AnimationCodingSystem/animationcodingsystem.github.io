@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ARTIC-48 · Channel Reference Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ── reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── tokens ── */
+:root {
+  --bg:        #0B0D11;
+  --bg2:       #131620;
+  --bg3:       #1A1E2B;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #E8ECF4;
+  --text2:     #8B93A8;
+  --text3:     #555E74;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'Syne', sans-serif;
+  --radius:    8px;
+
+  --s-bg:      rgba(56,110,200,0.12);
+  --s-border:  rgba(56,110,200,0.35);
+  --s-text:    #7AAEFF;
+  --s-accent:  #386EC8;
+
+  --p-bg:      rgba(52,160,80,0.10);
+  --p-border:  rgba(52,160,80,0.30);
+  --p-text:    #6DD68B;
+  --p-accent:  #34A050;
+
+  --e-bg:      rgba(210,120,30,0.10);
+  --e-border:  rgba(210,120,30,0.30);
+  --e-text:    #F0A855;
+  --e-accent:  #D2781E;
+
+  --r-bg:      rgba(140,110,230,0.10);
+  --r-border:  rgba(140,110,230,0.30);
+  --r-text:    #B8A6F5;
+  --r-accent:  #8C6EE6;
+}
+
+/* ── base ── */
+html { font-size: 14px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── layout ── */
+.page {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+/* ── header ── */
+.header {
+  grid-column: 1 / -1;
+  padding: 20px 28px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-top {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.wordmark {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.wordmark span { color: var(--text3); }
+
+.tagline {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+/* search */
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+  max-width: 360px;
+}
+.search-wrap input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 7px 12px 7px 32px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-wrap input::placeholder { color: var(--text3); }
+.search-wrap input:focus { border-color: var(--border2); }
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 13px;
+  height: 13px;
+  color: var(--text3);
+  pointer-events: none;
+}
+
+/* pills */
+.pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.12s;
+  letter-spacing: 0.04em;
+}
+.pill:hover { border-color: var(--border2); color: var(--text2); }
+.pill.active-all { background: var(--bg3); border-color: var(--border2); color: var(--text); }
+.pill.active-s { background: var(--s-bg); border-color: var(--s-border); color: var(--s-text); }
+.pill.active-p { background: var(--p-bg); border-color: var(--p-border); color: var(--p-text); }
+.pill.active-e { background: var(--e-bg); border-color: var(--e-border); color: var(--e-text); }
+.pill.active-r { background: var(--r-bg); border-color: var(--r-border); color: var(--r-text); }
+
+/* ── sidebar ── */
+.sidebar {
+  grid-column: 1;
+  grid-row: 2;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+  padding: 24px 20px;
+  position: sticky;
+  top: calc(1px + 89px); /* header height */
+  height: calc(100vh - 89px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* stats */
+.stat-group-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.12s;
+  margin-bottom: 4px;
+}
+.stat-card:hover { background: var(--bg3); }
+.stat-card.active-s { background: var(--s-bg); border-color: var(--s-border); }
+.stat-card.active-p { background: var(--p-bg); border-color: var(--p-border); }
+.stat-card.active-e { background: var(--e-bg); border-color: var(--e-border); }
+.stat-card.active-r { background: var(--r-bg); border-color: var(--r-border); }
+
+.stat-num {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  min-width: 40px;
+}
+.stat-num.s { color: var(--s-text); }
+.stat-num.p { color: var(--p-text); }
+.stat-num.e { color: var(--e-text); }
+.stat-num.r { color: var(--r-text); }
+
+.stat-meta { display: flex; flex-direction: column; gap: 2px; }
+.stat-layer { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--text2); }
+.stat-desc { font-size: 11px; color: var(--text3); }
+
+/* articulator index */
+.art-index { display: flex; flex-direction: column; gap: 6px; }
+.art-index-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.art-index-item:hover { background: var(--bg3); }
+.art-name { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.art-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* ── main content ── */
+.main {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 24px 28px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* layer section */
+.layer-section {}
+
+.layer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.layer-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+.lb-s { background: var(--s-bg); color: var(--s-text); border: 1px solid var(--s-border); }
+.lb-p { background: var(--p-bg); color: var(--p-text); border: 1px solid var(--p-border); }
+.lb-e { background: var(--e-bg); color: var(--e-text); border: 1px solid var(--e-border); }
+.lb-r { background: var(--r-bg); color: var(--r-text); border: 1px solid var(--r-border); }
+
+.layer-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.layer-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-left: auto; }
+
+/* channel grid */
+.channel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 6px;
+}
+
+/* channel card */
+.ch-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  user-select: none;
+}
+.ch-card:hover { border-color: var(--border2); background: var(--bg3); }
+.ch-card.expanded { border-color: var(--border2); }
+.ch-card.expanded.layer-s { border-color: var(--s-border); }
+.ch-card.expanded.layer-p { border-color: var(--p-border); }
+.ch-card.expanded.layer-e { border-color: var(--e-border); }
+.ch-card.expanded.layer-r { border-color: var(--r-border); }
+
+.ch-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ch-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  min-width: 28px;
+}
+.ch-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+.ch-art-tag {
+  font-size: 10px;
+  color: var(--text3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  font-family: var(--mono);
+}
+.ch-range {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.ch-detail {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.2s ease, opacity 0.15s ease;
+  opacity: 0;
+}
+.ch-detail.open { max-height: 120px; opacity: 1; }
+
+.ch-detail-inner {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.ch-ipa {
+  display: inline-block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* empty */
+.empty-msg {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text3);
+  padding: 3rem 0;
+  text-align: center;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+/* responsive */
+@media (max-width: 720px) {
+  .page { grid-template-columns: 1fr; }
+  .sidebar {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+  }
+  .main { grid-column: 1; padding: 16px; }
+  .header { padding: 14px 16px 0; }
+  .layer-sub { display: none; }
+  .sidebar-section { flex: 1; min-width: 160px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── header ── -->
+  <header class="header">
+    <div class="header-top">
+      <span class="wordmark">ARTIC<span>-</span>48</span>
+      <span class="tagline">Articulatory Animation Channel Reference</span>
+    </div>
+    <div class="header-controls">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/>
+        </svg>
+        <input id="srch" type="text" placeholder="search channels, articulators, IPA…" autocomplete="off" />
+      </div>
+      <div class="pills">
+        <button class="pill active-all" data-f="all">All 48</button>
+        <button class="pill" data-f="S">S · speech</button>
+        <button class="pill" data-f="P">P · prosody</button>
+        <button class="pill" data-f="E">E · emotion</button>
+        <button class="pill" data-f="R">R · residual</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="stat-group-label">Layers</div>
+      <div id="stat-cards"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="stat-group-label">Articulators</div>
+      <div class="art-index" id="art-index"></div>
+    </div>
+  </aside>
+
+  <!-- ── main ── -->
+  <main class="main" id="content"></main>
+
+</div>
+
+<script>
+const CHANNELS = [
+  {id:"S01",layer:"S",name:"jaw_open",art:"jaw",range:"0–1",sem:"Vertical jaw rotation; vowel height proxy",ipa:"/a/ /ɑ/ /æ/"},
+  {id:"S02",layer:"S",name:"jaw_protrude",art:"jaw",range:"-1–1",sem:"Anterior/posterior jaw translation",ipa:""},
+  {id:"S03",layer:"S",name:"jaw_lateral",art:"jaw",range:"-1–1",sem:"Left/right jaw displacement; mainly idle/emotional",ipa:""},
+  {id:"S04",layer:"S",name:"lip_aperture",art:"lips",range:"0–1",sem:"Vertical lip separation, independent of jaw",ipa:"/i/ /e/ /a/"},
+  {id:"S05",layer:"S",name:"lip_rounding",art:"lips",range:"0–1",sem:"Pursing and rounding; /u/ /o/ /ʃ/",ipa:"/u/ /o/ /ʃ/"},
+  {id:"S06",layer:"S",name:"lip_spreading",art:"lips",range:"0–1",sem:"Horizontal retraction; distinct from smile",ipa:"/i/ /e/"},
+  {id:"S07",layer:"S",name:"lip_compression",art:"lips",range:"0–1",sem:"Bilabial occlusion pressure",ipa:"/p/ /b/ /m/"},
+  {id:"S08",layer:"S",name:"lower_lip_tuck",art:"lips",range:"0–1",sem:"Lip-tooth contact for labiodentals",ipa:"/f/ /v/"},
+  {id:"S09",layer:"S",name:"upper_lip_raise",art:"lips",range:"0–1",sem:"Upper incisor exposure",ipa:""},
+  {id:"S10",layer:"S",name:"lip_asymmetry",art:"lips",range:"-1–1",sem:"L/R differential; emphasis and idle",ipa:""},
+  {id:"S11",layer:"S",name:"tongue_height",art:"tongue",range:"0–1",sem:"Body high↔low; vowel height axis",ipa:"/i/=0.9 /a/=0.05"},
+  {id:"S12",layer:"S",name:"tongue_backness",art:"tongue",range:"0–1",sem:"Body front↔back; /i/↔/u/ axis",ipa:"/i/=0.1 /u/=0.95"},
+  {id:"S13",layer:"S",name:"tongue_tip_raise",art:"tongue",range:"0–1",sem:"Alveolar contact; coronals",ipa:"/t/ /d/ /n/ /l/"},
+  {id:"S14",layer:"S",name:"tongue_tip_curl",art:"tongue",range:"0–1",sem:"Retroflex gesture",ipa:"/ɖ/ /ʂ/ /ɹ/"},
+  {id:"S15",layer:"S",name:"tongue_groove",art:"tongue",range:"0–1",sem:"Midline channel for sibilants",ipa:"/s/ /z/ /ʃ/ /ʒ/"},
+  {id:"S16",layer:"S",name:"tongue_dorsum_raise",art:"tongue",range:"0–1",sem:"Velar contact",ipa:"/k/ /g/ /ŋ/"},
+  {id:"S17",layer:"S",name:"tongue_root_retract",art:"tongue",range:"0–1",sem:"Pharyngeal/ATR dimension",ipa:"/ʕ/ ±ATR langs"},
+  {id:"S18",layer:"S",name:"tongue_protrusion",art:"tongue",range:"0–1",sem:"Interdental extension",ipa:"/θ/ /ð/"},
+  {id:"S19",layer:"S",name:"velum_lower",art:"velum",range:"0–1",sem:"Velopharyngeal coupling; nasality",ipa:"/m/ /n/ /ŋ/ ñ"},
+  {id:"S20",layer:"S",name:"larynx_height",art:"larynx",range:"-1–1",sem:"Raised (tense) ↔ lowered (rounded vowels)",ipa:""},
+  {id:"S21",layer:"S",name:"voicing",art:"larynx",range:"0–1",sem:"Glottal vibration; subdermal shimmer",ipa:"all voiced segments"},
+  {id:"S22",layer:"S",name:"aspiration",art:"larynx",range:"0–1",sem:"Aspirated burst /pʰ tʰ kʰ/",ipa:"/pʰ/ /tʰ/ /kʰ/"},
+  {id:"S23",layer:"S",name:"cheek_compression",art:"secondary",range:"0–1",sem:"Buccal pressure during stops and aspirates",ipa:""},
+  {id:"S24",layer:"S",name:"nostril_flare",art:"secondary",range:"0–1",sem:"Nasal airflow indicator",ipa:"/m/ /n/ /ŋ/"},
+  {id:"P01",layer:"P",name:"f0_normalized",art:"pitch",range:"-1–1",sem:"Relative F0 vs speaker baseline; drives brow + larynx",ipa:""},
+  {id:"P02",layer:"P",name:"energy",art:"amplitude",range:"0–1",sem:"RMS loudness; amplifies jaw excursion",ipa:""},
+  {id:"P03",layer:"P",name:"tempo_local",art:"timing",range:"0–1",sem:"Local speech rate; scales coarticulation window",ipa:""},
+  {id:"P04",layer:"P",name:"stress_marker",art:"timing",range:"0–1",sem:"Lexical/phrasal stress peak at accented syllable",ipa:""},
+  {id:"P05",layer:"P",name:"boundary_marker",art:"timing",range:"0–1",sem:"Prosodic boundary; permits blink and breath reset",ipa:""},
+  {id:"P06",layer:"P",name:"breath_phase",art:"respiration",range:"-1–1",sem:"Inhale↔exhale; couples chest, nostril, shoulder",ipa:""},
+  {id:"E01",layer:"E",name:"valence",art:"affect",range:"-1–1",sem:"Negative↔positive emotional polarity",ipa:""},
+  {id:"E02",layer:"E",name:"arousal",art:"affect",range:"0–1",sem:"Activation / energy level",ipa:""},
+  {id:"E03",layer:"E",name:"dominance",art:"affect",range:"-1–1",sem:"Submissive↔dominant posture",ipa:""},
+  {id:"E04",layer:"E",name:"brow_raise",art:"upper face",range:"0–1",sem:"Frontalis; surprise, question",ipa:""},
+  {id:"E05",layer:"E",name:"brow_furrow",art:"upper face",range:"0–1",sem:"Corrugator; concern, focus",ipa:""},
+  {id:"E06",layer:"E",name:"eye_widen",art:"upper face",range:"0–1",sem:"Levator palpebrae; alertness",ipa:""},
+  {id:"E07",layer:"E",name:"eye_squint",art:"upper face",range:"0–1",sem:"Orbicularis oculi; Duchenne marker, scrutiny",ipa:""},
+  {id:"E08",layer:"E",name:"smile",art:"lower face",range:"0–1",sem:"Zygomaticus pull; orthogonal to S06",ipa:""},
+  {id:"E09",layer:"E",name:"frown",art:"lower face",range:"0–1",sem:"DAO + mentalis; sadness, disgust",ipa:""},
+  {id:"E10",layer:"E",name:"sneer",art:"lower face",range:"0–1",sem:"LLSAN unilateral; contempt, disgust",ipa:""},
+  {id:"E11",layer:"E",name:"lip_press",art:"lower face",range:"0–1",sem:"Isometric lip seal; suppressed anger",ipa:""},
+  {id:"E12",layer:"E",name:"gaze_engagement",art:"gaze",range:"0–1",sem:"Direct gaze↔avoidance; social signal",ipa:""},
+  {id:"R01",layer:"R",name:"skin_compression_jaw",art:"soft tissue",range:"0–1",sem:"Submental fold depth, derived from jaw_open",ipa:""},
+  {id:"R02",layer:"R",name:"skin_compression_cheek",art:"soft tissue",range:"0–1",sem:"Nasolabial fold deepening from lip/jaw motion",ipa:""},
+  {id:"R03",layer:"R",name:"neck_tension",art:"muscle",range:"0–1",sem:"SCM / platysma activation via energy",ipa:""},
+  {id:"R04",layer:"R",name:"swallow_phase",art:"larynx",range:"0–1",sem:"Transient larynx rise + tongue retraction",ipa:""},
+  {id:"R05",layer:"R",name:"micro_tremor",art:"noise",range:"0–1",sem:"High-frequency physiological tremor envelope",ipa:""},
+  {id:"R06",layer:"R",name:"idle_drift",art:"noise",range:"0–1",sem:"Low-frequency postural sway envelope",ipa:""},
+];
+
+const LAYER_META = {
+  S:{label:"S",cls:"lb-s",scls:"s",title:"Speech articulation",sub:"24 ch · phoneme-driven · IPA-mapped"},
+  P:{label:"P",cls:"lb-p",scls:"p",title:"Prosody",sub:"6 ch · suprasegmental · speaker-level"},
+  E:{label:"E",cls:"lb-e",scls:"e",title:"Emotion & expression",sub:"12 ch · independent of speech content"},
+  R:{label:"R",cls:"lb-r",scls:"r",title:"Residual & secondary motion",sub:"6 ch · procedurally derived from S+P+E"},
+};
+const LAYER_DESCS = {
+  S:"speech",P:"prosody",E:"emotion",R:"residual"
+};
+const LAYER_ORDER = ["S","P","E","R"];
+const LAYER_COUNTS = {S:24,P:6,E:12,R:6};
+
+let activeFilter = "all";
+let searchQ = "";
+let expanded = null;
+
+function norm(s){ return s.toLowerCase(); }
+
+function matches(ch){
+  if(activeFilter !== "all" && ch.layer !== activeFilter) return false;
+  if(!searchQ) return true;
+  const q = norm(searchQ);
+  return norm(ch.name).includes(q)||norm(ch.sem).includes(q)||norm(ch.art).includes(q)||norm(ch.id).includes(q)||norm(ch.ipa).includes(q);
+}
+
+/* ── stat cards ── */
+function renderStats(){
+  const el = document.getElementById("stat-cards");
+  el.innerHTML = LAYER_ORDER.map(L => {
+    const m = LAYER_META[L];
+    const isActive = activeFilter === L;
+    return `<div class="stat-card${isActive?" active-"+m.scls:""}" data-layer="${L}" onclick="setFilter('${L}')">
+      <span class="stat-num ${m.scls}">${LAYER_COUNTS[L]}</span>
+      <div class="stat-meta">
+        <span class="stat-layer">${m.label} · ${LAYER_DESCS[L]}</span>
+        <span class="stat-desc">${m.title}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ── articulator index ── */
+function renderArtIndex(){
+  const el = document.getElementById("art-index");
+  const counts = {};
+  CHANNELS.forEach(ch => { counts[ch.art] = (counts[ch.art]||0)+1; });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML = sorted.map(([art,n])=>`
+    <div class="art-index-item" onclick="searchArt('${art}')">
+      <span class="art-name">${art}</span>
+      <span class="art-count">${n}</span>
+    </div>`).join("");
+}
+
+function searchArt(art){
+  document.getElementById("srch").value = art;
+  searchQ = art;
+  render();
+}
+
+/* ── main render ── */
+function render(){
+  const el = document.getElementById("content");
+  const visible = CHANNELS.filter(matches);
+  if(!visible.length){
+    el.innerHTML = `<div class="empty-msg">no channels match "${searchQ}"</div>`;
+    return;
+  }
+
+  const layers = activeFilter === "all" ? LAYER_ORDER : [activeFilter];
+  let html = "";
+
+  for(const L of layers){
+    const chs = visible.filter(c=>c.layer===L);
+    if(!chs.length) continue;
+    const m = LAYER_META[L];
+    html += `<div class="layer-section">
+      <div class="layer-header">
+        <span class="layer-badge ${m.cls}">${m.label}</span>
+        <span class="layer-title">${m.title}</span>
+        <span class="layer-sub">${m.sub}</span>
+      </div>
+      <div class="channel-grid">`;
+    for(const ch of chs){
+      const isExp = expanded === ch.id;
+      html += `<div class="ch-card layer-${ch.layer.toLowerCase()}${isExp?" expanded":""}" data-id="${ch.id}" onclick="toggle('${ch.id}')">
+        <div class="ch-top">
+          <span class="ch-id">${ch.id}</span>
+          <span class="ch-name">${ch.name}</span>
+          <span class="ch-art-tag">${ch.art}</span>
+          <span class="ch-range">${ch.range}</span>
+        </div>
+        <div class="ch-detail${isExp?" open":""}">
+          <div class="ch-detail-inner">
+            ${ch.sem}${ch.ipa?`<br><span class="ch-ipa">IPA: ${ch.ipa}</span>`:""}
+          </div>
+        </div>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function toggle(id){
+  expanded = expanded === id ? null : id;
+  render();
+}
+
+function setFilter(f){
+  activeFilter = f;
+  updatePills();
+  renderStats();
+  render();
+}
+
+function updatePills(){
+  document.querySelectorAll(".pill").forEach(b=>{
+    b.className = "pill";
+    if(b.dataset.f === activeFilter){
+      b.classList.add(activeFilter==="all"?"active-all":"active-"+activeFilter.toLowerCase());
+    }
+  });
+}
+
+document.getElementById("srch").addEventListener("input", e=>{
+  searchQ = e.target.value;
+  render();
+});
+
+document.querySelectorAll(".pill").forEach(btn=>{
+  btn.addEventListener("click", ()=>{ setFilter(btn.dataset.f); });
+});
+
+renderStats();
+renderArtIndex();
+render();
+</script>
+</body>
+</html>
